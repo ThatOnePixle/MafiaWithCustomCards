@@ -1,0 +1,80 @@
+[gd_scene load_steps=2 format=3 uid="uid://bue1hij1nwxjn"]
+
+[ext_resource type="Script" uid="uid://dj43t21xm6tb" path="res://main.gd" id="1_ig7tw"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ig7tw")
+
+[node name="mainMenu" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="StartButton" type="Button" parent="mainMenu"]
+layout_mode = 0
+offset_left = 467.0
+offset_top = 499.0
+offset_right = 793.0
+offset_bottom = 607.0
+text = "START"
+
+[node name="AddBotButton" type="Button" parent="mainMenu"]
+layout_mode = 0
+offset_left = 648.0
+offset_top = 16.0
+offset_right = 838.0
+offset_bottom = 89.0
+text = "Add Bot"
+
+[node name="numOfPlayers" type="Label" parent="mainMenu"]
+layout_mode = 0
+offset_left = 397.0
+offset_top = 38.0
+offset_right = 550.0
+offset_bottom = 93.0
+text = "Number of Players: "
+
+[node name="roles" type="Label" parent="mainMenu"]
+layout_mode = 0
+offset_left = 416.0
+offset_top = 151.0
+offset_right = 569.0
+offset_bottom = 206.0
+text = "Roles: "
+
+[node name="addRoleButton" type="Control" parent="mainMenu"]
+anchors_preset = 0
+offset_left = 648.0
+offset_top = 16.0
+offset_right = 688.0
+offset_bottom = 56.0
+
+[node name="AddMafia" type="Button" parent="mainMenu/addRoleButton"]
+layout_mode = 0
+offset_left = 54.0
+offset_top = 187.0
+offset_right = 244.0
+offset_bottom = 260.0
+text = "Add Mafia Role"
+
+[node name="AddVilliger" type="Button" parent="mainMenu/addRoleButton"]
+layout_mode = 0
+offset_left = -166.0
+offset_top = 186.0
+offset_right = 24.0
+offset_bottom = 259.0
+text = "Add Villiger Role"
+
+[node name="AddDetective" type="Button" parent="mainMenu/addRoleButton"]
+layout_mode = 0
+offset_left = -382.0
+offset_top = 185.0
+offset_right = -192.0
+offset_bottom = 258.0
+text = "Add Detective Role"
