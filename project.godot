@@ -14,3 +14,8 @@ config/name="mafia with custom cards"
 run/main_scene="uid://bue1hij1nwxjn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1500
+window/size/viewport_height=900
