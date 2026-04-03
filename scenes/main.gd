@@ -4,40 +4,27 @@ extends Control
 #Variables
 #----------------------------------------------------------------------------------------------------
 
-#Global
-enum GameState { LOBBY, NIGHT, VOTING, END }
-var currentgameState: GameState = GameState.LOBBY
-var role_options: Array[String] = ["Mafia", "Villager", "Detective"]
+var roleOptions: Array[String] = ["Mafia", "Villager", "Detective"]
 var roles: Array[String] = []
-
-#Lobby
+var players: Array[String] = []
 var numOfPlayers: int = 1
 
-@onready var numOfPlayersText = $mainMenu/numOfPlayers
-@onready var rolesText = $mainMenu/roles
-@onready var addBotButton = $mainMenu/AddBotButton
-@onready var removeBotButton = $"mainMenu/role buttons"
-@onready var role_button_parent = $"mainMenu/role buttons"
-var add_and_remove_role_button: PackedScene = preload("res://scenes/lobby/add_and_remove_role_button.tscn")
+var lobbyScene: PackedScene = preload("res://scenes/lobby/lobby.tscn")
+var lobbySceneObject: Node = lobbyScene.instantiate()
+var nightScene: PackedScene = preload("res://scenes/night/night.tscn")
+var nightSceneObject: Node = nightScene.instantiate()
+
 #----------------------------------------------------------------------------------------------------
 #Functions
-#--------------------------------------------	--------------------------------------------------------
+#----------------------------------------------------------------------------------------------------
 
-#Lobby
 func _ready() -> void:
-	for item in role_options:
-		var add_and_remove_role_button_object = add_and_remove_role_button.instantiate()
-		add_and_remove_role_button_object.name_of_role = item
-		add_and_remove_role_button_object.position = Vector2(role_options.find(item) * 1800/len(role_options), 350)
-		role_button_parent.add_child(add_and_remove_role_button_object)
+	self.add_child(lobbySceneObject)
 
-func _on_add_bot_button_pressed() -> void:
-	_change_players(1)
-func _on_remove_bot_pressed() -> void:
-	_change_players(-1)
-func _change_players(amount: int) -> void:
-	numOfPlayers += amount
-	numOfPlayers = clamp(numOfPlayers, 1, 20)
-	addBotButton.disabled = numOfPlayers >= 20
-	removeBotButton.disabled = numOfPlayers <= 1
-	numOfPlayersText.text = "Number of Players: " + str(numOfPlayers)
+func _start() -> void:
+	self.remove_child(lobbySceneObject)
+	for i in range(numOfPlayers):                                             #Assigns Roles
+		var roleToBeAssigned: String = roles[randi_range(0,len(roles)-1)]
+		players.append(roleToBeAssigned)
+		roles.erase(roleToBeAssigned)
+	self.add_child(nightSceneObject)

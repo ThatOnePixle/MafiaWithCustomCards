@@ -1,0 +1,72 @@
+[gd_scene load_steps=2 format=3 uid="uid://c62ayfuebhtk4"]
+
+[ext_resource type="Script" uid="uid://cxee2q8dxn3kb" path="res://scenes/lobby/lobby.gd" id="1_4xbgs"]
+
+[node name="Lobby" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_4xbgs")
+
+[node name="StartButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.814
+anchor_right = 0.65
+anchor_bottom = 0.96
+offset_right = 44.00006
+offset_bottom = 25.159851
+grow_horizontal = 2
+disabled = true
+text = "START"
+
+[node name="AddBotButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.3
+anchor_top = 0.12
+anchor_right = 0.48
+anchor_bottom = 0.25
+text = "Add Bot"
+
+[node name="RemoveBotButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.52
+anchor_top = 0.12
+anchor_right = 0.7
+anchor_bottom = 0.25
+text = "Remove Bot"
+
+[node name="numOfPlayers" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.05
+anchor_right = 0.5
+anchor_bottom = 0.1
+grow_horizontal = 2
+text = "Number of Players: 1"
+
+[node name="roles" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.3
+anchor_right = 0.5
+anchor_bottom = 0.3
+offset_left = -30.5
+offset_right = 30.5
+offset_bottom = 23.0
+grow_horizontal = 2
+text = "Roles: []"
+
+[node name="role buttons" type="Node" parent="."]
+
+[connection signal="pressed" from="StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="AddBotButton" to="." method="_on_add_bot_button_pressed"]
+[connection signal="pressed" from="RemoveBotButton" to="." method="_on_remove_bot_button_pressed"]
