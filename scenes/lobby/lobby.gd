@@ -30,17 +30,19 @@ func _ready() -> void:
 		addAndRemoveRoleButtonObject.anchor_right = leftAnchorPoint + 0.2
 		roleButtonParent.add_child(addAndRemoveRoleButtonObject)
 	for child in roleButtonParent.get_children():
-		child.get_node("add role").connect("button_down", (func(): mainRoot.roles.append(child.get_node("name of role").text)))
-		child.get_node("remove role").connect("button_down", (func(): mainRoot.roles.erase(child.get_node("name of role").text)))
-func _process(delta: float) -> void:
-	if rolesText.text != "Roles: " + str(mainRoot.roles):
-		rolesText.text = "Roles: " + str(mainRoot.roles)
-	if mainRoot.numOfPlayers > 2 and mainRoot.numOfPlayers == len(mainRoot.roles):
-		startButton.disabled = false
-	else:
-		startButton.disabled = true
+		child.get_node("add role").connect("button_down", (func(): _add_remove_roles("add", child)))
+		child.get_node("remove role").connect("button_down", (func(): _add_remove_roles("remove", child)))
 
-#Add/Remove PLayers
+#Add/Remove Roles
+func _add_remove_roles(action: String, child: Control) -> void:
+	if action == "add":
+		mainRoot.roles.append(child.get_node("name of role").text)
+	elif action == "remove":
+		mainRoot.roles.erase(child.get_node("name of role").text)
+	rolesText.text = "Roles: " + str(mainRoot.roles)
+	_check_can_start()
+
+#Add/Remove Players
 func _on_add_bot_button_pressed() -> void:
 	_change_players(1)
 func _on_remove_bot_button_pressed() -> void:
@@ -51,7 +53,13 @@ func _change_players(amount: int) -> void:
 	addBotButton.disabled = mainRoot.numOfPlayers >= 20
 	removeBotButton.disabled = mainRoot.numOfPlayers <= 1
 	numOfPlayersText.text = "Number of Players: " + str(mainRoot.numOfPlayers)
+	_check_can_start()
 
 #Start Button
 func _on_start_button_pressed() -> void:
 	mainRoot._start()
+func _check_can_start() -> void:
+	if mainRoot.numOfPlayers > 2 and mainRoot.numOfPlayers == len(mainRoot.roles):
+		startButton.disabled = false
+	else:
+		startButton.disabled = true
