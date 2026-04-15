@@ -1,0 +1,8 @@
+{
+	"name":"Mafia (0)",
+	"team":"mafia",
+	"night":{
+		"action":"kill",
+		"target":"selection"
+	}
+}

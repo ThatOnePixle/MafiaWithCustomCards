@@ -1,0 +1,15 @@
+{
+	"win con":{
+		"type": "compare",
+		"var1":{
+			"type":"players",
+			"condition":"is role",
+			"role": "mafia"
+		},
+		"var2":{
+			"type":"constant",
+			"number": 0
+		},
+		"comparison": "="
+	}
+}

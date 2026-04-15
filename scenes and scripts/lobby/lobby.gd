@@ -14,8 +14,7 @@ extends Control
 @onready var removeBotButton = $RemoveBotButton
 @onready var roleButtonParent = $"role buttons"
 
-var addAndRemoveRoleButton: PackedScene = preload("res://scenes/lobby/add_and_remove_role_button.tscn")
-
+var addAndRemoveRoleButton: PackedScene = preload("res://scenes and scripts/lobby/add_and_remove_role_button.tscn")
 #----------------------------------------------------------------------------------------------------
 #Functions
 #----------------------------------------------------------------------------------------------------
@@ -24,7 +23,7 @@ var addAndRemoveRoleButton: PackedScene = preload("res://scenes/lobby/add_and_re
 func _ready() -> void:
 	for item in mainRoot.roleOptions:
 		var addAndRemoveRoleButtonObject = addAndRemoveRoleButton.instantiate()
-		addAndRemoveRoleButtonObject.get_node("name of role").text = item
+		addAndRemoveRoleButtonObject.get_node("name of role").text = item["name"]
 		var leftAnchorPoint: float = float(mainRoot.roleOptions.find(item) + 1) * 1/(1 + len(mainRoot.roleOptions)) - 0.1
 		addAndRemoveRoleButtonObject.anchor_left = leftAnchorPoint
 		addAndRemoveRoleButtonObject.anchor_right = leftAnchorPoint + 0.2

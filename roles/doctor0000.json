@@ -1,0 +1,8 @@
+{
+	"name":"Doctor (0)",
+	"team":"villager",
+	"night":{
+		"action":"protcter",
+		"target":"selection"
+	}
+}

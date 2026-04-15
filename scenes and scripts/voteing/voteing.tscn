@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c4jo2hxexo0pr"]
 
-[ext_resource type="Script" uid="uid://bxpyegdyat18r" path="res://scenes/voteing/voteing.gd" id="1_7p3p6"]
+[ext_resource type="Script" uid="uid://bxpyegdyat18r" path="res://scenes and scripts/voteing/voteing.gd" id="1_7p3p6"]
 
 [node name="voteing" type="Control"]
 layout_mode = 3

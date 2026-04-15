@@ -1,0 +1,8 @@
+{
+	"name":"Detective (0)",
+	"team":"villager",
+	"night":{
+		"action":"investigate",
+		"target":"selection"
+	}
+}
