@@ -1,10 +1,11 @@
 {
+	"name":"villagers",
 	"win con":{
 		"type": "compare",
 		"var1":{
 			"type":"players",
-			"condition":"is role",
-			"role": "mafia"
+			"condition":"is team",
+			"team":"mafia"
 		},
 		"var2":{
 			"type":"constant",
