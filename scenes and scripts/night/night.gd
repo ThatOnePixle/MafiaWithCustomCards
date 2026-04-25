@@ -20,7 +20,7 @@ func _ready() -> void:
 	playerSelectorObject = playerSelector.instantiate()
 	roleTitle.text = "You Are: " + playerRole["name"]
 	if playerRole.has("night") and playerRole["night"]["target"] == "selection":
-		self.add_child(playerSelectorObject)
+		add_child(playerSelectorObject)
 
 #Action Logic
 func _selection_complete(botNumber) -> void:

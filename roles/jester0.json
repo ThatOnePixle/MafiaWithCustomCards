@@ -3,7 +3,6 @@
 	"team":"neutral",
 	"win con": {
 		"type":"has tag",
-		"tag":"voted out",
-		"alone": true
+		"tag":"voted out"
 	}
 }

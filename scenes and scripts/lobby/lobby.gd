@@ -12,7 +12,7 @@ extends Control
 @onready var startButton = $StartButton
 @onready var addBotButton = $AddBotButton
 @onready var removeBotButton = $RemoveBotButton
-@onready var roleButtonParent = $"role buttons"
+@onready var roleButtonParent = $roleButtonParent
 
 var addAndRemoveRoleButton: PackedScene = preload("res://scenes and scripts/lobby/add_and_remove_role_button.tscn")
 #----------------------------------------------------------------------------------------------------
@@ -21,12 +21,9 @@ var addAndRemoveRoleButton: PackedScene = preload("res://scenes and scripts/lobb
 
 #Lobby Setup
 func _ready() -> void:
-	for item in mainRoot.roleOptions:
+	for item in mainRoot.roleOptions.values():
 		var addAndRemoveRoleButtonObject = addAndRemoveRoleButton.instantiate()
 		addAndRemoveRoleButtonObject.get_node("name of role").text = item["name"]
-		var leftAnchorPoint: float = float(mainRoot.roleOptions.find(item) + 1) * 1/(1 + len(mainRoot.roleOptions)) - 0.1
-		addAndRemoveRoleButtonObject.anchor_left = leftAnchorPoint
-		addAndRemoveRoleButtonObject.anchor_right = leftAnchorPoint + 0.2
 		roleButtonParent.add_child(addAndRemoveRoleButtonObject)
 	for child in roleButtonParent.get_children():
 		child.get_node("add role").connect("button_down", (func(): _add_remove_roles("add", child)))
@@ -39,7 +36,7 @@ func _add_remove_roles(action: String, child: Control) -> void:
 	elif action == "remove":
 		mainRoot.roles.erase(child.get_node("name of role").text)
 	rolesText.text = "Roles: " + str(mainRoot.roles)
-	_check_can_start()
+	startButton.disabled = false if mainRoot.numOfPlayers > 2 and mainRoot.numOfPlayers == len(mainRoot.roles) else true
 
 #Add/Remove Players
 func _on_add_bot_button_pressed() -> void:
@@ -52,13 +49,8 @@ func _change_players(amount: int) -> void:
 	addBotButton.disabled = mainRoot.numOfPlayers >= 20
 	removeBotButton.disabled = mainRoot.numOfPlayers <= 1
 	numOfPlayersText.text = "Number of Players: " + str(mainRoot.numOfPlayers)
-	_check_can_start()
+	startButton.disabled = false if mainRoot.numOfPlayers > 2 and mainRoot.numOfPlayers == len(mainRoot.roles) else true
 
 #Start Button
 func _on_start_button_pressed() -> void:
 	mainRoot._start()
-func _check_can_start() -> void:
-	if mainRoot.numOfPlayers > 2 and mainRoot.numOfPlayers == len(mainRoot.roles):
-		startButton.disabled = false
-	else:
-		startButton.disabled = true

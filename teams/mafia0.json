@@ -1,16 +1,16 @@
 {
-	"name":"mafia",
+	"name":"Mafia (0)",
 	"win con":{
 		"type": "compare",
 		"var1":{
 			"type":"players",
 			"condition":"is team",
-			"team": "mafia"
+			"team": "Mafia (0)"
 		},
 		"var2":{
 			"type":"players",
 			"condition":"is team",
-			"team": "mafia",
+			"team": "Mafia (0)",
 			"inverted": true
 		},
 		"comparison": ">="

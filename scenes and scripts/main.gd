@@ -4,9 +4,9 @@ extends Control
 #Variables
 #----------------------------------------------------------------------------------------------------
 #Roles
-var roleOptions: Array = _load_roles_data()
+var roleOptions: Dictionary = _load_roles_data()
 var roles: Array[String] = []
-var teams: Array = _load_team_data()
+var teams: Array = []
 
 #Players
 var players: Dictionary[String, Dictionary] = {}
@@ -17,8 +17,6 @@ var lobbyScene: PackedScene = preload("res://scenes and scripts/lobby/lobby.tscn
 var nightScene: PackedScene = preload("res://scenes and scripts/night/night.tscn")
 var voteingScene: PackedScene = preload("res://scenes and scripts/voteing/voteing.tscn")
 var lobbySceneObject: Node = lobbyScene.instantiate()
-var nightSceneObject: Node = nightScene.instantiate()
-var voteingSceneObject: Node = voteingScene.instantiate()	
 
 #Comparisons
 var comparisons = {
@@ -44,7 +42,7 @@ func _get_player_count(condition: String, valueToCompare: String, countDead: boo
 
 #Setup Custom Data
 func _load_roles_data():
-	var rolesData = []
+	var rolesData = {}
 	var dir = DirAccess.open("res://roles")
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
@@ -52,13 +50,9 @@ func _load_roles_data():
 		if file_name.ends_with(".json"):
 			var file = FileAccess.open("res://roles/" + file_name, FileAccess.READ)
 			var data = JSON.parse_string(file.get_as_text())
-			rolesData.append(data)
+			rolesData[data["name"]] = data  # ← key by name
 		file_name = dir.get_next()
 	return rolesData
-func _return_role_data_matching_name(nameOfRole):
-	for roleData in roleOptions:
-		if nameOfRole == roleData["name"]:
-			return roleData
 func _load_team_data():
 	var teamData = []
 	var dir = DirAccess.open("res://teams")
@@ -70,6 +64,10 @@ func _load_team_data():
 			var data = JSON.parse_string(file.get_as_text())
 			teamData.append(data)
 		file_name = dir.get_next()
+	#Neutral Roles
+	for player in players.values():
+		if player["team"] == "neutral":
+			teamData.append(player)
 	return teamData
 func _create_json_var(varStructure: Dictionary):
 	var returnVar = 0
@@ -87,47 +85,53 @@ func _create_json_var(varStructure: Dictionary):
 
 #Check Win-Cons
 func _get_win_con():
-	var teamsThatHaveWon = []
+	var teamsThatHaveWon: Array = []
 	for team in teams:
+		print(team)
 		match team["win con"]["type"]:
 			"compare":
 				var var1 = _create_json_var(team["win con"]["var1"])
 				var var2 = _create_json_var(team["win con"]["var2"])
 				var comp = team["win con"]["comparison"]
-				print(str(var1) + str(comp) + str(var2))
-				print(str(_create_json_var(team["win con"]["var2"])))
 				if comparisons.has(comp) and comparisons[comp].call(var1, var2):
-					teamsThatHaveWon.append(team["name"])
+					teamsThatHaveWon.append(team)
+			"has tag":
+				if players[team["playerID"]].get(team["win con"]["tag"], false):
+					teamsThatHaveWon.append(team)
 	return teamsThatHaveWon
-func _check_win_cons(team_win, sceneToTransitionTo):
-	if team_win == []:
-		_instantiate_scenes()
-		self.add_child(sceneToTransitionTo)
+func _check_win_cons(teamWin, sceneToTransitionTo) -> void:
+	var playersWon: Array = []
+	print(players)
+	if teamWin == []:
+		get_child(0).queue_free()
+		add_child(sceneToTransitionTo.instantiate())
 	else:
-		print(str(team_win) + " has won!")
+		for player in players.values():
+			if player["team"] == "neutral":
+				if player in teamWin:
+					playersWon.append(player["playerID"])
+			else:
+				for team in teamWin:
+					if player["team"] == team["name"]:
+						playersWon.append(player["playerID"])
+		print(str(playersWon) + " have won!")
 
 #Assign Roles
 func _assign_roles() -> void:
 	for i in range(numOfPlayers):
 		var roleToBeAssigned: String = roles[randi_range(0,len(roles)-1)]
-		players["Bot" + str(i)] = _return_role_data_matching_name(roleToBeAssigned).duplicate(true)
+		players["Bot" + str(i)] = roleOptions[roleToBeAssigned].duplicate(true)
+		players["Bot" + str(i)]["playerID"] = "Bot" + str(i)
 		roles.erase(roleToBeAssigned)
+	teams = _load_team_data()
 
 #Swapping Scenes
 func _ready() -> void:
-	self.add_child(lobbySceneObject)
-func _instantiate_scenes() -> void:
-	lobbySceneObject = lobbyScene.instantiate()
-	nightSceneObject = nightScene.instantiate()
-	voteingSceneObject = voteingScene.instantiate()
-	print(players)
+	add_child(lobbySceneObject)
 func _start() -> void:
-	self.remove_child(lobbySceneObject)
 	_assign_roles()
-	_check_win_cons(_get_win_con(), nightSceneObject)
+	_check_win_cons(_get_win_con(), nightScene)
 func _start_vote() -> void:
-	self.remove_child(nightSceneObject)
-	_check_win_cons(_get_win_con(), voteingSceneObject)
+	_check_win_cons(_get_win_con(), voteingScene)
 func _end_vote() -> void:
-	self.remove_child(voteingSceneObject)
-	_check_win_cons(_get_win_con(),nightSceneObject)
+	_check_win_cons(_get_win_con(),nightScene)
