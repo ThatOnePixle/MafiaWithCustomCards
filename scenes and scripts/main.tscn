@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://bue1hij1nwxjn"]
+[gd_scene load_steps=3 format=3 uid="uid://bue1hij1nwxjn"]
 
 [ext_resource type="Script" uid="uid://dj43t21xm6tb" path="res://scenes and scripts/main.gd" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://orkd1re0nt" path="res://scenes and scripts/web_manager.gd" id="2_h0iye"]
 
 [node name="mainRoot" type="Control"]
 layout_mode = 3
@@ -10,3 +11,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ig7tw")
+
+[node name="web manager" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("2_h0iye")

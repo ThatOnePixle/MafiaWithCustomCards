@@ -11,6 +11,7 @@ var teams: Array = []
 #Players
 var players: Dictionary[String, Dictionary] = {}
 var numOfPlayers: int = 1
+var nonBotPlayers: Array = []
 
 #Scenes
 var lobbyScene: PackedScene = preload("res://scenes and scripts/lobby/lobby.tscn")
@@ -103,7 +104,7 @@ func _check_win_cons(teamWin, sceneToTransitionTo) -> void:
 	var playersWon: Array = []
 	print(players)
 	if teamWin == []:
-		get_child(0).queue_free()
+		get_child(1).queue_free()
 		add_child(sceneToTransitionTo.instantiate())
 	else:
 		for player in players.values():
@@ -118,11 +119,17 @@ func _check_win_cons(teamWin, sceneToTransitionTo) -> void:
 
 #Assign Roles
 func _assign_roles() -> void:
-	for i in range(numOfPlayers):
+	for playerID in nonBotPlayers:
+		var roleToBeAssigned: String = roles[randi_range(0,len(roles)-1)]
+		players[playerID] = roleOptions[roleToBeAssigned].duplicate(true)
+		players[playerID]["playerID"] = playerID
+		roles.erase(roleToBeAssigned)
+	for i in range(numOfPlayers - len(players)):
 		var roleToBeAssigned: String = roles[randi_range(0,len(roles)-1)]
 		players["Bot" + str(i)] = roleOptions[roleToBeAssigned].duplicate(true)
 		players["Bot" + str(i)]["playerID"] = "Bot" + str(i)
 		roles.erase(roleToBeAssigned)
+			
 	teams = _load_team_data()
 
 #Swapping Scenes
