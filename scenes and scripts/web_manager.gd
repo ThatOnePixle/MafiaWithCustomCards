@@ -44,7 +44,7 @@ func _process(_delta):
 				if peer.was_string_packet():
 					var packet_text = packet.get_string_from_utf8()
 					print("< Got text data from peer %d: %s ... echoing" % [peer_id, packet_text])
-					_handle_data(JSON.parse_string(packet_text))
+					_recieve_data(peer_id, JSON.parse_string(packet_text))
 					# Echo the packet back.
 					peer.send_text(packet_text)
 				else:
@@ -53,14 +53,19 @@ func _process(_delta):
 					peer.send(packet)
 		elif peer_state == WebSocketPeer.STATE_CLOSED:
 			# Remove the disconnected peer.
+			mainRoot.nonBotPlayers.erase(peer_id)
 			_peers.erase(peer_id)
 			var code = peer.get_close_code()
 			var reason = peer.get_close_reason()
 			print("- Peer %s closed with code: %d, reason %s. Clean: %s" % [peer_id, code, reason, code != -1])
 
-func _handle_data(data):
+func send_to_all(data: Dictionary):
+	for peer in _peers.values():
+		peer.send_text(JSON.stringify(data))
+
+func _recieve_data(client, data):
 	match data["type"]:
 		"join":
-			mainRoot.nonBotPlayers.append(data["name"])
+			mainRoot.nonBotPlayers[client] = data["name"]
 			print(mainRoot.nonBotPlayers)
 			mainRoot.get_node("Lobby")._change_players(1)

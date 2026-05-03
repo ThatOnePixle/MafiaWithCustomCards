@@ -11,7 +11,7 @@ var teams: Array = []
 #Players
 var players: Dictionary[String, Dictionary] = {}
 var numOfPlayers: int = 1
-var nonBotPlayers: Array = []
+var nonBotPlayers: Dictionary[Array, Array] = {}
 
 #Scenes
 var lobbyScene: PackedScene = preload("res://scenes and scripts/lobby/lobby.tscn")
@@ -100,12 +100,13 @@ func _get_win_con():
 				if players[team["playerID"]].get(team["win con"]["tag"], false):
 					teamsThatHaveWon.append(team)
 	return teamsThatHaveWon
-func _check_win_cons(teamWin, sceneToTransitionTo) -> void:
+func _check_win_cons(teamWin, sceneToTransitionTo, webScene) -> void:
 	var playersWon: Array = []
 	print(players)
 	if teamWin == []:
 		get_child(1).queue_free()
 		add_child(sceneToTransitionTo.instantiate())
+		get_node("web manager").send_to_all({"type": "state", "state": webScene})
 	else:
 		for player in players.values():
 			if player["team"] == "neutral":
@@ -119,7 +120,7 @@ func _check_win_cons(teamWin, sceneToTransitionTo) -> void:
 
 #Assign Roles
 func _assign_roles() -> void:
-	for playerID in nonBotPlayers:
+	for playerID in nonBotPlayers.values():
 		var roleToBeAssigned: String = roles[randi_range(0,len(roles)-1)]
 		players[playerID] = roleOptions[roleToBeAssigned].duplicate(true)
 		players[playerID]["playerID"] = playerID
@@ -137,8 +138,8 @@ func _ready() -> void:
 	add_child(lobbySceneObject)
 func _start() -> void:
 	_assign_roles()
-	_check_win_cons(_get_win_con(), nightScene)
+	_check_win_cons(_get_win_con(), nightScene, "night")
 func _start_vote() -> void:
-	_check_win_cons(_get_win_con(), voteingScene)
+	_check_win_cons(_get_win_con(), voteingScene, "vote")
 func _end_vote() -> void:
-	_check_win_cons(_get_win_con(),nightScene)
+	_check_win_cons(_get_win_con(),nightScene, "night")
