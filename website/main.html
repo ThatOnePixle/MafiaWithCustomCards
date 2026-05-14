@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mafia Controller</title>
+</head>
+<body>
+
+<h1>Mafia Controller</h1>
+<h2 id="roleName"></h2>
+
+<!-- JOIN -->
+<div id="join">
+    <h2>Join Game</h2>
+    <input id="nameInput" placeholder="Name">
+    <button id="joinBtn">Join</button>
+</div>
+
+<!-- LOBBY -->
+<div id="lobby" style="display:none;">
+    <h2>Lobby</h2>
+    <p>Your In!</p>
+</div>
+
+<!-- NIGHT -->
+<div id="night" style="display:none;">
+    <h2>Night</h2>
+    <p id="actionResult"></p>
+    <div id="actionArea"></div>
+</div>
+
+<!-- VOTE -->
+<div id="vote" style="display:none;">
+    <h2>Vote</h2>
+    <div id="voteList"></div>
+</div>
+
+<!-- WIN -->
+<div id="win" style="display:none;">
+    <h2 id="winText"></h2>
+</div>
+
+<p id="status">Connecting...</p>
+
+<script>
+const socket = new WebSocket("ws://127.0.0.1:8080");
+
+// ---------- CONNECTION ----------
+const status = document.getElementById("status");
+
+socket.onopen = () => status.innerText = "Connected";
+socket.onclose = () => status.innerText = "Disconnected";
+socket.onerror = () => status.innerText = "Error";
+
+// ---------- SCREEN SWITCH ----------
+function showScreen(id) {
+    const screens = ["join", "lobby", "night", "vote", "win"];
+    screens.forEach(s => {
+        document.getElementById(s).style.display = "none";
+    });
+    document.getElementById(id).style.display = "block";
+}
+
+// ---------- JOIN ----------
+document.getElementById("joinBtn").onclick = () => {
+    const name = document.getElementById("nameInput").value;
+
+    socket.send(JSON.stringify({
+        type: "join",
+        name: name
+    }));
+};
+
+// ---------- RECEIVE DATA ----------
+socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    switch (data.type) {
+        case "lobby":
+            updateLobby(data);
+            break;
+
+        case "night":
+            updateNight(data);
+            break;
+
+        case "vote":
+            updateVote(data);
+            break;
+
+        case "win":
+            updateWin(data);
+            break;
+
+        case "info":
+            updateInfo(data);
+            break;
+    }
+};
+
+// ---------- LOBBY ----------
+function updateLobby(data) {
+    showScreen("lobby");
+}
+
+// ---------- NIGHT ----------
+function updateNight(data) {
+    showScreen("night");
+    setUpAction(data, data.night, "night")
+}
+
+// ---------- VOTE ----------
+function updateVote(data) {
+    showScreen("vote");
+    setUpSelector(data, "vote")
+}
+
+// ---------- WIN ----------
+function updateWin(data) {
+    showScreen("win");
+    document.getElementById("winText").innerText = data.playersWon + " wins!";
+}
+
+// ---------- INFO ----------
+function updateWin(data) {
+    switch (data.location) {
+        case "resultText":
+            document.getElementById("actionResult").innerText = data.message
+    }
+}
+
+function setUpAction(data, actionData, state){
+    switch (actionData.action) {
+        case "selection":
+            setUpSelector(data, state)
+    };
+}
+
+function setUpSelector(data, state){
+    const list = document.getElementById("voteList");
+    list.innerHTML = "";
+
+    data.options.forEach(o => {
+        const btn = document.createElement("button");
+        btn.innerText = o;
+
+        btn.onclick = () => {
+            socket.send(JSON.stringify({
+                type: state,
+                target: o
+            }));
+            list.style.display = "none";
+        };
+        
+        list.appendChild(btn);
+    });
+}
+</script>
+
+</body>
+</html>

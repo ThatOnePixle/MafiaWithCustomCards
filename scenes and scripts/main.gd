@@ -11,7 +11,7 @@ var teams: Array = []
 #Players
 var players: Dictionary[String, Dictionary] = {}
 var numOfPlayers: int = 1
-var nonBotPlayers: Dictionary[Array, Array] = {}
+var nonBotPlayers: Dictionary[String, int] = {}
 
 #Scenes
 var lobbyScene: PackedScene = preload("res://scenes and scripts/lobby/lobby.tscn")
@@ -34,12 +34,21 @@ var comparisons = {
 #----------------------------------------------------------------------------------------------------
 
 #Misc Functions
-func _get_player_count(condition: String, valueToCompare: String, countDead: bool):
-	var memberCount = 0
+func _get_members(conditions: Dictionary[String, Array]):
+	var members: Array = []
 	for player in players.values():
-		if player.get(condition, "") == valueToCompare and (countDead or !player.get("dead", false)):
-			memberCount += 1
-	return memberCount
+		var playerPass: bool = true
+		for condition in conditions.keys():
+			if player.get(condition, null) not in conditions[condition]:
+				playerPass = false
+		if playerPass:
+			members.append(player)
+	return members
+func _player_list_to_ids(playerList: Array):
+	var playerIdList: Array = []
+	for player in playerList:
+		playerIdList.append(player["id"])
+	return playerIdList
 
 #Setup Custom Data
 func _load_roles_data():
@@ -74,12 +83,12 @@ func _create_json_var(varStructure: Dictionary):
 	var returnVar = 0
 	match varStructure["type"]:
 		"players":
-			returnVar = _get_player_count("","",false)
+			returnVar = len(_get_members({"dead": [false, null]}))
 			match varStructure["condition"]:
 				"is team":
-					returnVar = _get_player_count("team",varStructure["team"], false)
+					returnVar = len(_get_members({"team": [varStructure["team"]], "dead": [false, null]}))
 			if varStructure.get("inverted", false):
-				returnVar = _get_player_count("","",false) - returnVar
+				returnVar = len(_get_members({"dead": [false, null]})) - returnVar
 		"constant":
 			returnVar = int(varStructure["number"])
 	return returnVar
@@ -106,7 +115,6 @@ func _check_win_cons(teamWin, sceneToTransitionTo, webScene) -> void:
 	if teamWin == []:
 		get_child(1).queue_free()
 		add_child(sceneToTransitionTo.instantiate())
-		get_node("web manager").send_to_all({"type": "state", "state": webScene})
 	else:
 		for player in players.values():
 			if player["team"] == "neutral":
@@ -117,10 +125,26 @@ func _check_win_cons(teamWin, sceneToTransitionTo, webScene) -> void:
 					if player["team"] == team["name"]:
 						playersWon.append(player["playerID"])
 		print(str(playersWon) + " have won!")
+	_send_web_info(webScene, playersWon)
+
+#Web Stuff
+func _send_web_info(state: String, extraData):
+	match state:
+		"lobby":
+			get_node("web manager")._send_to_all({"type": "lobby"})
+		"night":
+			for player in nonBotPlayers.keys():
+				get_node("web manager").peers[nonBotPlayers[player]].send_text(JSON.stringify({"type": "night", "night": players[player]["night"]}))
+		"vote":
+			get_node("web manager")._send_to_all({"type": "vote", "options": _player_list_to_ids(_get_members({"dead": [false, null]}))})
+		"win":
+			get_node("web manager")._send_to_all({"type": "win", "playersWon": extraData})
+		"info":
+			get_node("web manager")._send_to_all({"type": "info", "message": extraData})
 
 #Assign Roles
 func _assign_roles() -> void:
-	for playerID in nonBotPlayers.values():
+	for playerID in nonBotPlayers.keys():
 		var roleToBeAssigned: String = roles[randi_range(0,len(roles)-1)]
 		players[playerID] = roleOptions[roleToBeAssigned].duplicate(true)
 		players[playerID]["playerID"] = playerID

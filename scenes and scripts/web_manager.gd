@@ -22,7 +22,6 @@ func _ready():
 		push_error("Unable to start server.")
 		set_process(false)
 
-
 func _process(_delta):
 	while _tcp_server.is_connection_available():
 		last_peer_id += 1
@@ -53,19 +52,19 @@ func _process(_delta):
 					peer.send(packet)
 		elif peer_state == WebSocketPeer.STATE_CLOSED:
 			# Remove the disconnected peer.
-			mainRoot.nonBotPlayers.erase(peer_id)
 			_peers.erase(peer_id)
 			var code = peer.get_close_code()
 			var reason = peer.get_close_reason()
 			print("- Peer %s closed with code: %d, reason %s. Clean: %s" % [peer_id, code, reason, code != -1])
 
-func send_to_all(data: Dictionary):
+func _send_to_all(data: Dictionary):
 	for peer in _peers.values():
 		peer.send_text(JSON.stringify(data))
 
 func _recieve_data(client, data):
 	match data["type"]:
 		"join":
-			mainRoot.nonBotPlayers[client] = data["name"]
+			mainRoot.nonBotPlayers[data["name"]] = client
 			print(mainRoot.nonBotPlayers)
 			mainRoot.get_node("Lobby")._change_players(1)
+			mainRoot._send_web_info("lobby")
