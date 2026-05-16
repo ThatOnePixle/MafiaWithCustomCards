@@ -8,6 +8,9 @@ var roleOptions: Dictionary = _load_roles_data()
 var roles: Array[String] = []
 var teams: Array = []
 
+#Roles Variables
+var voteColecter: Dictionary[String, Dictionary] = {}
+
 #Players
 var players: Dictionary[String, Dictionary] = {}
 var numOfPlayers: int = 1
@@ -49,6 +52,9 @@ func _player_list_to_ids(playerList: Array):
 	for player in playerList:
 		playerIdList.append(player["id"])
 	return playerIdList
+func _get_key_from_value(dict: Dictionary, value):
+	return dict.keys()[dict.values().find(value)]
+
 
 #Setup Custom Data
 func _load_roles_data():
@@ -124,23 +130,9 @@ func _check_win_cons(teamWin, sceneToTransitionTo, webScene) -> void:
 				for team in teamWin:
 					if player["team"] == team["name"]:
 						playersWon.append(player["playerID"])
+		add_child(lobbySceneObject)
 		print(str(playersWon) + " have won!")
-	_send_web_info(webScene, playersWon)
-
-#Web Stuff
-func _send_web_info(state: String, extraData):
-	match state:
-		"lobby":
-			get_node("web manager")._send_to_all({"type": "lobby"})
-		"night":
-			for player in nonBotPlayers.keys():
-				get_node("web manager").peers[nonBotPlayers[player]].send_text(JSON.stringify({"type": "night", "night": players[player]["night"]}))
-		"vote":
-			get_node("web manager")._send_to_all({"type": "vote", "options": _player_list_to_ids(_get_members({"dead": [false, null]}))})
-		"win":
-			get_node("web manager")._send_to_all({"type": "win", "playersWon": extraData})
-		"info":
-			get_node("web manager")._send_to_all({"type": "info", "message": extraData})
+	get_node("web manager")._send_data(webScene, playersWon)
 
 #Assign Roles
 func _assign_roles() -> void:
@@ -156,6 +148,49 @@ func _assign_roles() -> void:
 		roles.erase(roleToBeAssigned)
 			
 	teams = _load_team_data()
+
+#night
+func _perform_action(gameState: String, player: Dictionary, target: String) -> void:
+	match player[gameState]["type"]:
+		"voted out":
+			players[target]["dead"] = true
+			players[target]["voted out"] = true
+		"vote":
+			_vote_action_logic(gameState, player, target)
+		"kill":
+			if !players[target].get("protected", false):
+				players[target]["dead"] = true
+		"protect":
+			players[target]["protected"] = true
+		"investigate":
+			get_node("night").text = players[target]["name"]
+			get_node("web manager")._peers[player["id"]].send_text(JSON.stringify({"type": "info", "resultText": players[target]["name"]}))
+func _vote_action_logic(gameState: String, player: Dictionary, target: String) -> void:
+	if voteColecter.get(player["role"], 0).get(target, 0) != 0:
+		voteColecter[player["role"]][target] = 1 
+	else:
+		voteColecter[player["role"]][target] += 1
+	if len(voteColecter[player["role"]].values()) >= len(_get_members({"name":["Mafia (0)"], "dead": [false, null]})):
+		var amountOfVotes: Array = voteColecter["vote"].values()
+		amountOfVotes.sort()
+		var highestAmountOfVotes: int = amountOfVotes[len(voteColecter[player["role"]].values())-1]
+		if highestAmountOfVotes != amountOfVotes[len(voteColecter[player["role"]].values())-2]:	
+			target = _get_key_from_value(voteColecter[player["role"]], highestAmountOfVotes)
+		_perform_action(gameState, {gameState: {"type": player[gameState]["action"]}}, target)
+
+#Voteing
+func _player_vote(target: String) -> void:
+	if voteColecter.get("vote", 0).get(target, 0) != 0:
+		voteColecter["vote"][target] = 1 
+	else:
+		voteColecter["vote"][target] += 1
+	if len(voteColecter["vote"].values()) >= len(_get_members({"dead":[false, null]})):
+		var amountOfVotes: Array = voteColecter["vote"].values()
+		amountOfVotes.sort()
+		var highestAmountOfVotes: int = amountOfVotes[len(voteColecter["vote"].values())-1]
+		if highestAmountOfVotes != amountOfVotes[len(voteColecter["vote"].values())-2]:	
+			target = _get_key_from_value(voteColecter["vote"], highestAmountOfVotes)
+			_perform_action("voteing", {"voteing": {"type": "voted out"}}, target)
 
 #Swapping Scenes
 func _ready() -> void:

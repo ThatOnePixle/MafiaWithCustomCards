@@ -2,7 +2,7 @@
 	"name":"Doctor (0)",
 	"team":"Villager (0)",
 	"night":{
-		"action":"protcter",
+		"type":"protcter",
 		"target":"selection"
 	}
 }

@@ -2,6 +2,7 @@
 	"name":"Mafia (0)",
 	"team":"Mafia (0)",
 	"night":{
+		"type": "vote",
 		"action":"kill",
 		"target":"selection"
 	}

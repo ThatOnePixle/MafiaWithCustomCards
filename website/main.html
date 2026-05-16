@@ -145,8 +145,8 @@ function setUpSelector(data, state){
 
         btn.onclick = () => {
             socket.send(JSON.stringify({
-                type: state,
-                target: o
+                "type": state,
+                "target": o
             }));
             list.style.display = "none";
         };

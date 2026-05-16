@@ -2,7 +2,7 @@
 	"name":"Detective (0)",
 	"team":"villager",
 	"night":{
-		"action":"investigate",
+		"type":"investigate",
 		"target":"selection"
 	}
 }

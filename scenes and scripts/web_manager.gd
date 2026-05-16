@@ -67,4 +67,21 @@ func _recieve_data(client, data):
 			mainRoot.nonBotPlayers[data["name"]] = client
 			print(mainRoot.nonBotPlayers)
 			mainRoot.get_node("Lobby")._change_players(1)
-			mainRoot._send_web_info("lobby")
+			mainRoot._send_data("lobby")
+		"night":
+			mainRoot.get_node("night")._perform_action("night", mainRoot.players[mainRoot._get_key_from_value(client)], data["target"])
+		"vote":
+			mainRoot.get_node("night")._perform_action("night", mainRoot.players[mainRoot._get_key_from_value(client)], data["target"])
+func _send_data(state: String, extraData):
+	match state:
+		"lobby":
+			_send_to_all({"type": "lobby"})
+		"night":
+			for player in mainRoot.nonBotPlayers.keys():
+				_peers[mainRoot.nonBotPlayers[mainRoot.player]].send_text(JSON.stringify({"type": "night", "night": mainRoot.players[mainRoot.player]["night"]}))
+		"vote":
+			_send_to_all({"type": "vote", "options": mainRoot._player_list_to_ids(mainRoot._get_members({"dead": [false, null]}))})
+		"win":
+			_send_to_all({"type": "win", "playersWon": extraData})
+		"info":
+			_send_to_all({"type": "info", "message": extraData})
