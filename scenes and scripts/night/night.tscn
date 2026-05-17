@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://orwtxaeeh21o" path="res://scenes and scripts/night/night.gd" id="1_38omt"]
 
-[node name="nightRoot" type="Control"]
+[node name="night" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

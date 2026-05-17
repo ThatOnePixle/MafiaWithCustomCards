@@ -105,13 +105,16 @@ function updateLobby(data) {
 // ---------- NIGHT ----------
 function updateNight(data) {
     showScreen("night");
-    setUpAction(data, data.night, "night")
+    document.getElementById("roleName").innerText = data.player.name
+    if (data.player.night){
+        setUpAction(data, data.player.night, "night");
+    }
 }
 
 // ---------- VOTE ----------
 function updateVote(data) {
     showScreen("vote");
-    setUpSelector(data, "vote")
+    setUpSelector(data, "vote");
 }
 
 // ---------- WIN ----------
@@ -121,22 +124,24 @@ function updateWin(data) {
 }
 
 // ---------- INFO ----------
-function updateWin(data) {
+function updateInfo(data) {
     switch (data.location) {
         case "resultText":
-            document.getElementById("actionResult").innerText = data.message
+            document.getElementById("actionResult").innerText = data.message;
     }
 }
 
 function setUpAction(data, actionData, state){
-    switch (actionData.action) {
+    switch (actionData.target) {
         case "selection":
-            setUpSelector(data, state)
+            setUpSelector(data, state);
     };
 }
 
 function setUpSelector(data, state){
-    const list = document.getElementById("voteList");
+    const list = state == "vote"
+        ? document.getElementById("voteList")
+        : document.getElementById("actionArea");
     list.innerHTML = "";
 
     data.options.forEach(o => {
@@ -145,8 +150,8 @@ function setUpSelector(data, state){
 
         btn.onclick = () => {
             socket.send(JSON.stringify({
-                "type": state,
-                "target": o
+                type: state,
+                target: o
             }));
             list.style.display = "none";
         };

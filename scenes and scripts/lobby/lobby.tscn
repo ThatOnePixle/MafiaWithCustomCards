@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cxee2q8dxn3kb" path="res://scenes and scripts/lobby/lobby.gd" id="1_4xbgs"]
 
-[node name="Lobby" type="Control"]
+[node name="lobby" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

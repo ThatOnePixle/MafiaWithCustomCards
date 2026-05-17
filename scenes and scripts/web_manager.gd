@@ -42,14 +42,10 @@ func _process(_delta):
 				var packet = peer.get_packet()
 				if peer.was_string_packet():
 					var packet_text = packet.get_string_from_utf8()
-					print("< Got text data from peer %d: %s ... echoing" % [peer_id, packet_text])
+					print("< Got text data from peer %d: %s" % [peer_id, packet_text])
 					_recieve_data(peer_id, JSON.parse_string(packet_text))
-					# Echo the packet back.
-					peer.send_text(packet_text)
 				else:
-					print("< Got binary data from peer %d: %d ... echoing" % [peer_id, packet.size()])
-					# Echo the packet back.
-					peer.send(packet)
+					print("< Got binary data from peer %d: %d" % [peer_id, packet.size()])
 		elif peer_state == WebSocketPeer.STATE_CLOSED:
 			# Remove the disconnected peer.
 			_peers.erase(peer_id)
@@ -66,22 +62,26 @@ func _recieve_data(client, data):
 		"join":
 			mainRoot.nonBotPlayers[data["name"]] = client
 			print(mainRoot.nonBotPlayers)
-			mainRoot.get_node("Lobby")._change_players(1)
-			mainRoot._send_data("lobby")
+			mainRoot.get_node("lobby")._change_players(1)
+			_peers[client].send_text(JSON.stringify({"type": "lobby"}))
 		"night":
-			mainRoot.get_node("night")._perform_action("night", mainRoot.players[mainRoot._get_key_from_value(client)], data["target"])
+			mainRoot._perform_action("night", mainRoot.players[mainRoot._get_key_from_value(mainRoot.nonBotPlayers, client)], data["target"])
 		"vote":
-			mainRoot.get_node("night")._perform_action("night", mainRoot.players[mainRoot._get_key_from_value(client)], data["target"])
+			mainRoot._player_vote(data["target"])
 func _send_data(state: String, extraData):
 	match state:
 		"lobby":
 			_send_to_all({"type": "lobby"})
 		"night":
 			for player in mainRoot.nonBotPlayers.keys():
-				_peers[mainRoot.nonBotPlayers[mainRoot.player]].send_text(JSON.stringify({"type": "night", "night": mainRoot.players[mainRoot.player]["night"]}))
+				_peers[mainRoot.nonBotPlayers[player]].send_text(JSON.stringify({
+					"type": "night", 
+					"player": mainRoot.players[player],
+					"options": mainRoot._player_list_to_ids(mainRoot._get_members({"dead": [false, null]}))
+					}))
 		"vote":
 			_send_to_all({"type": "vote", "options": mainRoot._player_list_to_ids(mainRoot._get_members({"dead": [false, null]}))})
 		"win":
 			_send_to_all({"type": "win", "playersWon": extraData})
 		"info":
-			_send_to_all({"type": "info", "message": extraData})
+			_send_to_all({"type": "info", "location": "resultText", "message": extraData})

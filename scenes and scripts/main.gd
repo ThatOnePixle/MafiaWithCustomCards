@@ -37,7 +37,7 @@ var comparisons = {
 #----------------------------------------------------------------------------------------------------
 
 #Misc Functions
-func _get_members(conditions: Dictionary[String, Array]):
+func _get_members(conditions: Dictionary):
 	var members: Array = []
 	for player in players.values():
 		var playerPass: bool = true
@@ -50,7 +50,7 @@ func _get_members(conditions: Dictionary[String, Array]):
 func _player_list_to_ids(playerList: Array):
 	var playerIdList: Array = []
 	for player in playerList:
-		playerIdList.append(player["id"])
+		playerIdList.append(player.get("id", "Unknown"))
 	return playerIdList
 func _get_key_from_value(dict: Dictionary, value):
 	return dict.keys()[dict.values().find(value)]
@@ -112,39 +112,40 @@ func _get_win_con():
 				if comparisons.has(comp) and comparisons[comp].call(var1, var2):
 					teamsThatHaveWon.append(team)
 			"has tag":
-				if players[team["playerID"]].get(team["win con"]["tag"], false):
+				if players[team["id"]].get(team["win con"]["tag"], false):
 					teamsThatHaveWon.append(team)
 	return teamsThatHaveWon
 func _check_win_cons(teamWin, sceneToTransitionTo, webScene) -> void:
 	var playersWon: Array = []
 	print(players)
 	if teamWin == []:
+		voteColecter.clear()
 		get_child(1).queue_free()
 		add_child(sceneToTransitionTo.instantiate())
 	else:
 		for player in players.values():
 			if player["team"] == "neutral":
 				if player in teamWin:
-					playersWon.append(player["playerID"])
+					playersWon.append(player["id"])
 			else:
 				for team in teamWin:
 					if player["team"] == team["name"]:
-						playersWon.append(player["playerID"])
+						playersWon.append(player["id"])
 		add_child(lobbySceneObject)
 		print(str(playersWon) + " have won!")
 	get_node("web manager")._send_data(webScene, playersWon)
 
 #Assign Roles
 func _assign_roles() -> void:
-	for playerID in nonBotPlayers.keys():
+	for id in nonBotPlayers.keys():
 		var roleToBeAssigned: String = roles[randi_range(0,len(roles)-1)]
-		players[playerID] = roleOptions[roleToBeAssigned].duplicate(true)
-		players[playerID]["playerID"] = playerID
+		players[id] = roleOptions[roleToBeAssigned].duplicate(true)
+		players[id]["id"] = id
 		roles.erase(roleToBeAssigned)
 	for i in range(numOfPlayers - len(players)):
 		var roleToBeAssigned: String = roles[randi_range(0,len(roles)-1)]
 		players["Bot" + str(i)] = roleOptions[roleToBeAssigned].duplicate(true)
-		players["Bot" + str(i)]["playerID"] = "Bot" + str(i)
+		players["Bot" + str(i)]["id"] = "Bot" + str(i)
 		roles.erase(roleToBeAssigned)
 			
 	teams = _load_team_data()
@@ -163,27 +164,27 @@ func _perform_action(gameState: String, player: Dictionary, target: String) -> v
 		"protect":
 			players[target]["protected"] = true
 		"investigate":
-			get_node("night").text = players[target]["name"]
+			get_node("night/resultLabel").text = players[target]["name"]
 			get_node("web manager")._peers[player["id"]].send_text(JSON.stringify({"type": "info", "resultText": players[target]["name"]}))
 func _vote_action_logic(gameState: String, player: Dictionary, target: String) -> void:
-	if voteColecter.get(player["role"], 0).get(target, 0) != 0:
-		voteColecter[player["role"]][target] = 1 
-	else:
-		voteColecter[player["role"]][target] += 1
+	if !voteColecter.has(player["role"]):
+		voteColecter[player["role"]] = {}
+	voteColecter[player["role"]][target] = voteColecter[player["role"]].get(target, 0) + 1
+	
 	if len(voteColecter[player["role"]].values()) >= len(_get_members({"name":["Mafia (0)"], "dead": [false, null]})):
-		var amountOfVotes: Array = voteColecter["vote"].values()
+		var amountOfVotes: Array = voteColecter[player["role"]].values()
 		amountOfVotes.sort()
 		var highestAmountOfVotes: int = amountOfVotes[len(voteColecter[player["role"]].values())-1]
-		if highestAmountOfVotes != amountOfVotes[len(voteColecter[player["role"]].values())-2]:	
-			target = _get_key_from_value(voteColecter[player["role"]], highestAmountOfVotes)
+		if amountOfVotes.size() > 1:
+			if highestAmountOfVotes != amountOfVotes[len(voteColecter[player["role"]].values())-2]:	
+				target = _get_key_from_value(voteColecter[player["role"]], highestAmountOfVotes)
 		_perform_action(gameState, {gameState: {"type": player[gameState]["action"]}}, target)
 
 #Voteing
 func _player_vote(target: String) -> void:
-	if voteColecter.get("vote", 0).get(target, 0) != 0:
-		voteColecter["vote"][target] = 1 
-	else:
-		voteColecter["vote"][target] += 1
+	if !voteColecter.has("vote"):
+		voteColecter["vote"] = {}
+	voteColecter["vote"][target] = voteColecter["vote"].get(target, 0) + 1
 	if len(voteColecter["vote"].values()) >= len(_get_members({"dead":[false, null]})):
 		var amountOfVotes: Array = voteColecter["vote"].values()
 		amountOfVotes.sort()
