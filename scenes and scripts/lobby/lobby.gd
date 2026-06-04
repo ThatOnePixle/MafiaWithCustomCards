@@ -45,9 +45,9 @@ func _on_remove_bot_button_pressed() -> void:
 	_change_players(-1)
 func _change_players(amount: int) -> void:
 	mainRoot.numOfPlayers += amount
-	mainRoot.numOfPlayers = clamp(mainRoot.numOfPlayers, 1, 20)
+	mainRoot.numOfPlayers = clamp(mainRoot.numOfPlayers, 0, 20)
 	addBotButton.disabled = mainRoot.numOfPlayers >= 20
-	removeBotButton.disabled = mainRoot.numOfPlayers <= len(mainRoot.nonBotPlayers) + 1
+	removeBotButton.disabled = mainRoot.numOfPlayers <= len(mainRoot.nonBotPlayers)
 	numOfPlayersText.text = "Number of Players: " + str(mainRoot.numOfPlayers)
 	startButton.disabled = false if mainRoot.numOfPlayers > 2 and mainRoot.numOfPlayers == len(mainRoot.roles) else true
 

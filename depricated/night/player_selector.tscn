@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://ua0wsg0fw3my"]
 
-[ext_resource type="Script" uid="uid://b6w4a5dmxb2dm" path="res://scenes and scripts/night/player_selector.gd" id="1_1wamd"]
+[ext_resource type="Script" uid="uid://b6w4a5dmxb2dm" path="res://depricated/night/player_selector.gd" id="1_1wamd"]
 
 [node name="player selector" type="Control"]
 layout_mode = 3

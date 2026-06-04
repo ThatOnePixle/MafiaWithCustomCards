@@ -143,6 +143,7 @@ function setUpSelector(data, state){
         ? document.getElementById("voteList")
         : document.getElementById("actionArea");
     list.innerHTML = "";
+    list.style.display = "block";
 
     data.options.forEach(o => {
         const btn = document.createElement("button");

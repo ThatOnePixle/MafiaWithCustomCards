@@ -66,8 +66,18 @@ func _recieve_data(client, data):
 			_peers[client].send_text(JSON.stringify({"type": "lobby"}))
 		"night":
 			mainRoot._perform_action("night", mainRoot.players[mainRoot._get_key_from_value(mainRoot.nonBotPlayers, client)], data["target"])
+			
 		"vote":
-			mainRoot._player_vote(data["target"])
+			if mainRoot._collect_vote(
+				"vote",
+				data["target"],
+				len(mainRoot._get_members({"dead":[false, null]})),
+				{
+					"gameState": "voteing",
+					"player": {"voteing": {"type": "voted out"}}
+				}
+			):
+				mainRoot._check_win_cons(mainRoot._get_win_con(), "night")
 func _send_data(state: String, extraData):
 	match state:
 		"lobby":
@@ -80,7 +90,10 @@ func _send_data(state: String, extraData):
 					"options": mainRoot._player_list_to_ids(mainRoot._get_members({"dead": [false, null]}))
 					}))
 		"vote":
-			_send_to_all({"type": "vote", "options": mainRoot._player_list_to_ids(mainRoot._get_members({"dead": [false, null]}))})
+			for peer in _peers.values():
+				var options = mainRoot._player_list_to_ids(mainRoot._get_members({"dead": [false, null]})) if mainRoot.players[mainRoot._get_key_from_value(mainRoot.nonBotPlayers, mainRoot._get_key_from_value(_peers, peer))].get("dead", false) == false else []
+				var data  = {"type": "vote", "options": options}
+				peer.send_text(JSON.stringify(data))
 		"win":
 			_send_to_all({"type": "win", "playersWon": extraData})
 		"info":

@@ -13,14 +13,13 @@ var voteColecter: Dictionary[String, Dictionary] = {}
 
 #Players
 var players: Dictionary[String, Dictionary] = {}
-var numOfPlayers: int = 1
+var numOfPlayers: int = 0
 var nonBotPlayers: Dictionary[String, int] = {}
+var nightCompletedList: Array[Dictionary] = []
+var voteCompletedList: Array[Dictionary] = []
 
-#Scenes
-var lobbyScene: PackedScene = preload("res://scenes and scripts/lobby/lobby.tscn")
-var nightScene: PackedScene = preload("res://scenes and scripts/night/night.tscn")
-var voteingScene: PackedScene = preload("res://scenes and scripts/voteing/voteing.tscn")
-var lobbySceneObject: Node = lobbyScene.instantiate()
+#Nodes
+@onready var lobbyNode: Control = $lobby
 
 #Comparisons
 var comparisons = {
@@ -115,14 +114,11 @@ func _get_win_con():
 				if players[team["id"]].get(team["win con"]["tag"], false):
 					teamsThatHaveWon.append(team)
 	return teamsThatHaveWon
-func _check_win_cons(teamWin, sceneToTransitionTo, webScene) -> void:
+func _check_win_cons(teamWin, webScene) -> void:
 	var playersWon: Array = []
 	print(players)
-	if teamWin == []:
-		voteColecter.clear()
-		get_child(1).queue_free()
-		add_child(sceneToTransitionTo.instantiate())
-	else:
+	if teamWin != []:
+		webScene = "win"
 		for player in players.values():
 			if player["team"] == "neutral":
 				if player in teamWin:
@@ -131,22 +127,26 @@ func _check_win_cons(teamWin, sceneToTransitionTo, webScene) -> void:
 				for team in teamWin:
 					if player["team"] == team["name"]:
 						playersWon.append(player["id"])
-		add_child(lobbySceneObject)
+		lobbyNode.visible = true
 		print(str(playersWon) + " have won!")
+	voteColecter.clear()
+	nightCompletedList.clear()
+	voteCompletedList.clear()
 	get_node("web manager")._send_data(webScene, playersWon)
 
 #Assign Roles
 func _assign_roles() -> void:
+	var tempRoles: Array[String] = roles.duplicate(true)
 	for id in nonBotPlayers.keys():
-		var roleToBeAssigned: String = roles[randi_range(0,len(roles)-1)]
+		var roleToBeAssigned: String = tempRoles[randi_range(0,len(tempRoles)-1)]
 		players[id] = roleOptions[roleToBeAssigned].duplicate(true)
 		players[id]["id"] = id
-		roles.erase(roleToBeAssigned)
+		tempRoles.erase(roleToBeAssigned)
 	for i in range(numOfPlayers - len(players)):
-		var roleToBeAssigned: String = roles[randi_range(0,len(roles)-1)]
+		var roleToBeAssigned: String = tempRoles[randi_range(0,len(tempRoles)-1)]
 		players["Bot" + str(i)] = roleOptions[roleToBeAssigned].duplicate(true)
 		players["Bot" + str(i)]["id"] = "Bot" + str(i)
-		roles.erase(roleToBeAssigned)
+		tempRoles.erase(roleToBeAssigned)
 			
 	teams = _load_team_data()
 
@@ -157,49 +157,54 @@ func _perform_action(gameState: String, player: Dictionary, target: String) -> v
 			players[target]["dead"] = true
 			players[target]["voted out"] = true
 		"vote":
-			_vote_action_logic(gameState, player, target)
+			_collect_vote(
+				player["name"],
+				target,
+				len(_get_members({"name":[player["name"]], "dead":[false, null]})),
+				{
+					"gameState": gameState,
+					"player": {gameState: {"type": player[gameState]["action"]}}
+				}
+			)
 		"kill":
 			if !players[target].get("protected", false):
 				players[target]["dead"] = true
+			else: 
+				players[target]["protected"] = false
 		"protect":
 			players[target]["protected"] = true
 		"investigate":
 			get_node("night/resultLabel").text = players[target]["name"]
 			get_node("web manager")._peers[player["id"]].send_text(JSON.stringify({"type": "info", "resultText": players[target]["name"]}))
-func _vote_action_logic(gameState: String, player: Dictionary, target: String) -> void:
-	if !voteColecter.has(player["role"]):
-		voteColecter[player["role"]] = {}
-	voteColecter[player["role"]][target] = voteColecter[player["role"]].get(target, 0) + 1
-	
-	if len(voteColecter[player["role"]].values()) >= len(_get_members({"name":["Mafia (0)"], "dead": [false, null]})):
-		var amountOfVotes: Array = voteColecter[player["role"]].values()
-		amountOfVotes.sort()
-		var highestAmountOfVotes: int = amountOfVotes[len(voteColecter[player["role"]].values())-1]
-		if amountOfVotes.size() > 1:
-			if highestAmountOfVotes != amountOfVotes[len(voteColecter[player["role"]].values())-2]:	
-				target = _get_key_from_value(voteColecter[player["role"]], highestAmountOfVotes)
-		_perform_action(gameState, {gameState: {"type": player[gameState]["action"]}}, target)
+	if player not in nightCompletedList:
+		nightCompletedList.append(player)
+	if len(nightCompletedList) + len(_get_members({"night":[null]})) >= len(players): 
+		_check_win_cons(_get_win_con(), "vote")
+func _collect_vote(voteGroup: String, target: String, votesNeeded: int, actionData: Dictionary) -> bool:
+	if !voteColecter.has(voteGroup):
+		voteColecter[voteGroup] = {}
 
-#Voteing
-func _player_vote(target: String) -> void:
-	if !voteColecter.has("vote"):
-		voteColecter["vote"] = {}
-	voteColecter["vote"][target] = voteColecter["vote"].get(target, 0) + 1
-	if len(voteColecter["vote"].values()) >= len(_get_members({"dead":[false, null]})):
-		var amountOfVotes: Array = voteColecter["vote"].values()
+	voteColecter[voteGroup][target] = voteColecter[voteGroup].get(target, 0) + 1
+	var totalVotes = 0
+	for v in voteColecter[voteGroup].values():
+		totalVotes += v
+
+	if totalVotes >= votesNeeded:
+		var amountOfVotes: Array = voteColecter[voteGroup].values()
 		amountOfVotes.sort()
-		var highestAmountOfVotes: int = amountOfVotes[len(voteColecter["vote"].values())-1]
-		if highestAmountOfVotes != amountOfVotes[len(voteColecter["vote"].values())-2]:	
-			target = _get_key_from_value(voteColecter["vote"], highestAmountOfVotes)
-			_perform_action("voteing", {"voteing": {"type": "voted out"}}, target)
+
+		var highestVotes = amountOfVotes[-1]
+		var winningTarget = target
+
+		if amountOfVotes.size() > 1:
+			if highestVotes != amountOfVotes[-2]:
+				winningTarget = _get_key_from_value(voteColecter[voteGroup], highestVotes)
+
+		_perform_action(actionData["gameState"], actionData["player"], winningTarget)
+	return totalVotes >= votesNeeded
 
 #Swapping Scenes
-func _ready() -> void:
-	add_child(lobbySceneObject)
 func _start() -> void:
+	lobbyNode.visible = false
 	_assign_roles()
-	_check_win_cons(_get_win_con(), nightScene, "night")
-func _start_vote() -> void:
-	_check_win_cons(_get_win_con(), voteingScene, "vote")
-func _end_vote() -> void:
-	_check_win_cons(_get_win_con(),nightScene, "night")
+	_check_win_cons(_get_win_con(), "night")

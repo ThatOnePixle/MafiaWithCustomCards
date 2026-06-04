@@ -13,7 +13,7 @@ extends Control
 
 #Selector Setup
 func _ready() -> void:
-	var count: float = 0
+	var count: int = 1
 	for player in mainRoot.players.keys():
 		var buttonPerPerson: Button = Button.new()
 		buttonPerPerson.text = player
@@ -25,5 +25,5 @@ func _ready() -> void:
 			buttonPerPerson.disabled = true
 			buttonPerPerson.text = player + " (Dead)"
 		background.add_child(buttonPerPerson)
-		buttonPerPerson.connect("button_down", (func(): root._selection_complete(count)))
+		buttonPerPerson.connect("button_down", (func(): root._selection_complete(player)))
 		count += 1

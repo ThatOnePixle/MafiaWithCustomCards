@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b818hg5i1rdd3"]
 
-[ext_resource type="Script" uid="uid://orwtxaeeh21o" path="res://scenes and scripts/night/night.gd" id="1_38omt"]
+[ext_resource type="Script" uid="uid://orwtxaeeh21o" path="res://depricated/night/night.gd" id="1_38omt"]
 
 [node name="night" type="Control"]
 layout_mode = 3

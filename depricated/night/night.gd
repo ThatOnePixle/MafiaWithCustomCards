@@ -30,5 +30,4 @@ func _selection_complete(botNumber) -> void:
 
 #End Night Sequence
 func _on_finish_button_pressed() -> void:
-	mainRoot.voteColecter = {}
 	mainRoot._start_vote()
