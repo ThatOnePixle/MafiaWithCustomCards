@@ -4,6 +4,7 @@
 	"night":{
 		"type": "vote",
 		"action":"kill",
+		"group": "mafia",
 		"target":"selection"
 	}
 }

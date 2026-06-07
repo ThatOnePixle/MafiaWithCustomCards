@@ -8,15 +8,15 @@ var roleOptions: Dictionary = _load_roles_data()
 var roles: Array[String] = []
 var teams: Array = []
 
-#Roles Variables
+#Mid Game
 var voteColecter: Dictionary[String, Dictionary] = {}
+var nightCompletedList: Array[Dictionary] = []
+var voteCompletedList: Array[Dictionary] = []
 
 #Players
 var players: Dictionary[String, Dictionary] = {}
 var numOfPlayers: int = 0
 var nonBotPlayers: Dictionary[String, int] = {}
-var nightCompletedList: Array[Dictionary] = []
-var voteCompletedList: Array[Dictionary] = []
 
 #Nodes
 @onready var lobbyNode: Control = $lobby
@@ -158,7 +158,7 @@ func _perform_action(gameState: String, player: Dictionary, target: String) -> v
 			players[target]["voted out"] = true
 		"vote":
 			_collect_vote(
-				player["name"],
+				player[gameState]["group"],
 				target,
 				len(_get_members({"name":[player["name"]], "dead":[false, null]})),
 				{

@@ -64,8 +64,8 @@ func _recieve_data(client, data):
 			print(mainRoot.nonBotPlayers)
 			mainRoot.get_node("lobby")._change_players(1)
 			_peers[client].send_text(JSON.stringify({"type": "lobby"}))
-		"night":
-			mainRoot._perform_action("night", mainRoot.players[mainRoot._get_key_from_value(mainRoot.nonBotPlayers, client)], data["target"])
+		"action":
+			mainRoot._perform_action(data["gameState"], mainRoot.players[mainRoot._get_key_from_value(mainRoot.nonBotPlayers, client)], data["target"])
 			
 		"vote":
 			if mainRoot._collect_vote(
@@ -83,18 +83,29 @@ func _send_data(state: String, extraData):
 		"lobby":
 			_send_to_all({"type": "lobby"})
 		"night":
-			for player in mainRoot.nonBotPlayers.keys():
-				_peers[mainRoot.nonBotPlayers[player]].send_text(JSON.stringify({
-					"type": "night", 
-					"player": mainRoot.players[player],
-					"options": mainRoot._player_list_to_ids(mainRoot._get_members({"dead": [false, null]}))
-					}))
+			for player in mainRoot.players.keys():
+				if mainRoot.players[player].get("night", {}).get("type", "") == "multiple":
+					for action in mainRoot.players[player]["night"]["actions"].values():
+						_send_action_data("action", action, _peers[mainRoot.nonBotPlayers[player]])
+				else:
+					_send_action_data("action", player.get("night", {}), _peers[mainRoot.nonBotPlayers[player]])
+				
 		"vote":
-			for peer in _peers.values():
-				var options = mainRoot._player_list_to_ids(mainRoot._get_members({"dead": [false, null]})) if mainRoot.players[mainRoot._get_key_from_value(mainRoot.nonBotPlayers, mainRoot._get_key_from_value(_peers, peer))].get("dead", false) == false else []
-				var data  = {"type": "vote", "options": options}
-				peer.send_text(JSON.stringify(data))
+			for player in mainRoot.players.keys():
+				if mainRoot.players[player].get("vote", {}).get("type", "") == "multiple":
+					for action in mainRoot.players[player]["vote"]["actions"].values():
+						_send_action_data("action", action, _peers[mainRoot.nonBotPlayers[player]])
+				else:
+					_send_action_data("action", player.get("vote", {}), _peers[mainRoot.nonBotPlayers[player]])
+				_send_action_data("vote", {"target":"selection"}, _peers[mainRoot.nonBotPlayers[player]])
 		"win":
 			_send_to_all({"type": "win", "playersWon": extraData})
 		"info":
 			_send_to_all({"type": "info", "location": "resultText", "message": extraData})
+
+func _send_action_data(gameState, actionData, peer):
+		var options: Array = []
+		if actionData.get("target", "") == "selection":
+			options = mainRoot._get_members({"dead": [false, null]})
+		peer.send_text(JSON.stringify({"type": gameState, "options": options}))
+	

@@ -106,9 +106,7 @@ function updateLobby(data) {
 function updateNight(data) {
     showScreen("night");
     document.getElementById("roleName").innerText = data.player.name
-    if (data.player.night){
-        setUpAction(data, data.player.night, "night");
-    }
+    setUpSelector(data, "night")
 }
 
 // ---------- VOTE ----------
@@ -131,12 +129,6 @@ function updateInfo(data) {
     }
 }
 
-function setUpAction(data, actionData, state){
-    switch (actionData.target) {
-        case "selection":
-            setUpSelector(data, state);
-    };
-}
 
 function setUpSelector(data, state){
     const list = state == "vote"
