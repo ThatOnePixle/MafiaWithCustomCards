@@ -21,9 +21,9 @@
     <p>Your In!</p>
 </div>
 
-<!-- NIGHT -->
-<div id="night" style="display:none;">
-    <h2>Night</h2>
+<!-- ACTION -->
+<div id="action" style="display:none;">
+    <h2>Action</h2>
     <p id="actionResult"></p>
     <div id="actionArea"></div>
 </div>
@@ -53,7 +53,7 @@ socket.onerror = () => status.innerText = "Error";
 
 // ---------- SCREEN SWITCH ----------
 function showScreen(id) {
-    const screens = ["join", "lobby", "night", "vote", "win"];
+    const screens = ["join", "lobby", "action", "vote", "win"];
     screens.forEach(s => {
         document.getElementById(s).style.display = "none";
     });
@@ -79,8 +79,8 @@ socket.onmessage = (event) => {
             updateLobby(data);
             break;
 
-        case "night":
-            updateNight(data);
+        case "action":
+            updateAction(data);
             break;
 
         case "vote":
@@ -102,16 +102,17 @@ function updateLobby(data) {
     showScreen("lobby");
 }
 
-// ---------- NIGHT ----------
-function updateNight(data) {
-    showScreen("night");
-    document.getElementById("roleName").innerText = data.player.name
-    setUpSelector(data, "night")
+// ---------- ACTION ----------
+function updateAction(data) {
+    showScreen("action");
+    document.getElementById("roleName").innerText = data.role;
+    setUpSelector(data, "action")
 }
 
 // ---------- VOTE ----------
 function updateVote(data) {
     showScreen("vote");
+    document.getElementById("roleName").innerText = data.role;
     setUpSelector(data, "vote");
 }
 
@@ -143,7 +144,8 @@ function setUpSelector(data, state){
 
         btn.onclick = () => {
             socket.send(JSON.stringify({
-                type: state,
+                type: "action",
+                gameState: state,
                 target: o
             }));
             list.style.display = "none";

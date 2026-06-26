@@ -22,24 +22,6 @@ grow_horizontal = 2
 disabled = true
 text = "START"
 
-[node name="AddBotButton" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.3
-anchor_top = 0.12
-anchor_right = 0.48
-anchor_bottom = 0.25
-text = "Add Bot"
-
-[node name="RemoveBotButton" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.52
-anchor_top = 0.12
-anchor_right = 0.7
-anchor_bottom = 0.25
-text = "Remove Bot"
-
 [node name="numOfPlayers" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = -1
@@ -75,5 +57,3 @@ grow_vertical = 2
 alignment = 1
 
 [connection signal="pressed" from="StartButton" to="." method="_on_start_button_pressed"]
-[connection signal="pressed" from="AddBotButton" to="." method="_on_add_bot_button_pressed"]
-[connection signal="pressed" from="RemoveBotButton" to="." method="_on_remove_bot_button_pressed"]
