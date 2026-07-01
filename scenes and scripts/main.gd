@@ -11,13 +11,13 @@ var roles: Array[String] = []
 
 #Players
 var players: Dictionary[String, Dictionary] = {}
-var nonBotPlayers: Dictionary[String, int] = {}
+var nonBotPlayers: Dictionary[String, WebSocketPeer] = {}
 
 #Nodes
 @onready var lobbyNode: Control = $"lobby manager"
-@onready var webNode: Control = $"web manager"
-@onready var actionNode: Control = $"action manager"
-@onready var winNode: Control = $"win manager"
+@onready var packetNode: Node = $"packet manager"
+@onready var actionNode: Node = $"action manager"
+@onready var winNode: Node = $"win manager"
 
 #Comparisons
 var comparisons = {
@@ -38,8 +38,8 @@ func _get_members(conditions: Dictionary):
 	var members: Array = []
 	for player in players.values():
 		var playerPass: bool = true
-		for condition in conditions.keys():
-			if player.get(condition, null) not in conditions[condition]:
+		for location in conditions.keys():
+			if player[location[0]].get(location[1], null) not in conditions[location]:
 				playerPass = false
 		if playerPass:
 			members.append(player)
@@ -47,7 +47,7 @@ func _get_members(conditions: Dictionary):
 func _player_list_to_ids(playerList: Array):
 	var playerIdList: Array = []
 	for player in playerList:
-		playerIdList.append(player.get("id", "Unknown"))
+		playerIdList.append(player["persistant data"].get("id", "Unknown"))
 	return playerIdList
 
 #Setup Custom Data
@@ -83,12 +83,12 @@ func _create_json_var(varStructure: Dictionary):
 	var returnVar = 0
 	match varStructure["type"]:
 		"players":
-			returnVar = len(_get_members({"dead": [false, null]}))
+			returnVar = len(_get_members({["conditions","dead"]: [false, null]}))
 			match varStructure["condition"]:
 				"is team":
-					returnVar = len(_get_members({"team": [varStructure["team"]], "dead": [false, null]}))
+					returnVar = len(_get_members({["role","team"]: [varStructure["team"]], ["conditions","dead"]: [false, null]}))
 			if varStructure.get("inverted", false):
-				returnVar = len(_get_members({"dead": [false, null]})) - returnVar
+				returnVar = len(_get_members({["conditions","dead"]: [false, null]})) - returnVar
 		"constant":
 			returnVar = int(varStructure["number"])
 	return returnVar
@@ -106,7 +106,7 @@ func _get_win_con():
 				if comparisons.has(comp) and comparisons[comp].call(var1, var2):
 					teamsThatHaveWon.append(team)
 			"has tag":
-				if players[team["id"]].get(team["win con"]["tag"], false):
+				if players[team["id"]]["conditions"].get(team["win con"]["tag"], false):
 					teamsThatHaveWon.append(team)
 	return teamsThatHaveWon
 func _check_win_cons(teamWin, webScene) -> void:
@@ -117,18 +117,18 @@ func _check_win_cons(teamWin, webScene) -> void:
 		for player in players.values():
 			if player["role"]["team"] == "neutral":
 				if player["role"] in teamWin:
-					playersWon.append(player["id"])
+					playersWon.append(player["persistant data"]["id"])
 			else:
 				for team in teamWin:
 					if player["role"]["team"] == team["name"]:
-						playersWon.append(player["id"])
+						playersWon.append(player["persistant data"]["id"])
 		lobbyNode.visible = true
 		print(str(playersWon) + " have won!")
 	
 	#clean up
 	for player in players.values():
-		player.get("conditions, {}").erase("protected")
+		player.get("conditions", {}).erase("protected")
 	actionNode.voteColecter.clear()
 	actionNode.nightCompletedList.clear()
 	actionNode.voteCompletedList.clear()
-	webNode._send_data(webScene, playersWon)
+	packetNode._send_data(webScene, playersWon)

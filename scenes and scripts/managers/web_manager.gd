@@ -10,8 +10,8 @@ var _tcp_server = TCPServer.new()
 var _peers: Dictionary[int, WebSocketPeer] = {}
 
 var last_peer_id := 1
-@onready var packetManager: Control = $"."
-@onready var mainRoot: Control = $".."
+@onready var packetManager: Node = $".."
+@onready var mainRoot: Node = $"../.."
 
 func _ready():
 	# Start listening on the given port.
