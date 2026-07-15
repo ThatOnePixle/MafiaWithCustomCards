@@ -1,0 +1,32 @@
+[gd_scene load_steps=7 format=3 uid="uid://bue1hij1nwxjn"]
+
+[ext_resource type="Script" uid="uid://dj43t21xm6tb" path="res://scenes and scripts/main.gd" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://orkd1re0nt" path="res://scenes and scripts/managers/web_manager.gd" id="2_h0iye"]
+[ext_resource type="PackedScene" uid="uid://c62ayfuebhtk4" path="res://scenes and scripts/lobby/lobby.tscn" id="3_eyd3t"]
+[ext_resource type="Script" uid="uid://ca4m22c21ggua" path="res://scenes and scripts/managers/packet_manager.gd" id="3_vqouv"]
+[ext_resource type="Script" uid="uid://6cw2mhvj2h4c" path="res://scenes and scripts/managers/action_manager.gd" id="4_tg2wl"]
+[ext_resource type="Script" uid="uid://b5xhonx3wgebk" path="res://scenes and scripts/managers/win_manager.gd" id="5_vqouv"]
+
+[node name="main root" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ig7tw")
+
+[node name="lobby manager" parent="." instance=ExtResource("3_eyd3t")]
+layout_mode = 1
+
+[node name="packet manager" type="Node" parent="."]
+script = ExtResource("3_vqouv")
+
+[node name="web manager" type="Node" parent="packet manager"]
+script = ExtResource("2_h0iye")
+
+[node name="action manager" type="Node" parent="."]
+script = ExtResource("4_tg2wl")
+
+[node name="win manager" type="Node" parent="."]
+script = ExtResource("5_vqouv")

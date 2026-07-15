@@ -8,7 +8,6 @@ var roleOptions: Dictionary = _load_roles_data()
 var teams: Array = _load_team_data()
 var roles: Array[String] = []
 
-
 #Players
 var players: Dictionary[String, Dictionary] = {}
 var nonBotPlayers: Dictionary[String, WebSocketPeer] = {}
@@ -97,7 +96,7 @@ func _create_json_var(varStructure: Dictionary):
 func _get_win_con():
 	var teamsThatHaveWon: Array = []
 	for team in teams:
-		print(team)
+		#print(team)
 		match team["win con"]["type"]:
 			"compare":
 				var var1 = _create_json_var(team["win con"]["var1"])
@@ -131,4 +130,5 @@ func _check_win_cons(teamWin, webScene) -> void:
 	actionNode.voteColecter.clear()
 	actionNode.nightCompletedList.clear()
 	actionNode.voteCompletedList.clear()
+	actionNode.gameState = webScene
 	packetNode._send_data(webScene, playersWon)

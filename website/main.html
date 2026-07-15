@@ -28,12 +28,6 @@
     <div id="actionArea"></div>
 </div>
 
-<!-- VOTE -->
-<div id="vote" style="display:none;">
-    <h2>Vote</h2>
-    <div id="voteList"></div>
-</div>
-
 <!-- WIN -->
 <div id="win" style="display:none;">
     <h2 id="winText"></h2>
@@ -53,7 +47,7 @@ socket.onerror = () => status.innerText = "Error";
 
 // ---------- SCREEN SWITCH ----------
 function showScreen(id) {
-    const screens = ["join", "lobby", "action", "vote", "win"];
+    const screens = ["join", "lobby", "action", "win"];
     screens.forEach(s => {
         document.getElementById(s).style.display = "none";
     });
@@ -83,10 +77,6 @@ socket.onmessage = (event) => {
             updateAction(data);
             break;
 
-        case "vote":
-            updateVote(data);
-            break;
-
         case "win":
             updateWin(data);
             break;
@@ -106,14 +96,7 @@ function updateLobby(data) {
 function updateAction(data) {
     showScreen("action");
     document.getElementById("roleName").innerText = data.role;
-    setUpSelector(data, "action")
-}
-
-// ---------- VOTE ----------
-function updateVote(data) {
-    showScreen("vote");
-    document.getElementById("roleName").innerText = data.role;
-    setUpSelector(data, "vote");
+    setUpSelector(data, data.isVote)
 }
 
 // ---------- WIN ----------
@@ -131,10 +114,8 @@ function updateInfo(data) {
 }
 
 
-function setUpSelector(data, state){
-    const list = state == "vote"
-        ? document.getElementById("voteList")
-        : document.getElementById("actionArea");
+function setUpSelector(data, isVote){
+    const list = document.getElementById("actionArea");
     list.innerHTML = "";
     list.style.display = "block";
 
@@ -145,7 +126,7 @@ function setUpSelector(data, state){
         btn.onclick = () => {
             socket.send(JSON.stringify({
                 type: "action",
-                gameState: state,
+                isVote: isVote,
                 target: o
             }));
             list.style.display = "none";
